@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deep Personalization: Unlocking Personalized Proactive Agents With Local Compute</title>
+<meta name="description" content="Coco learns when to help through continuous context observation and implicit feedback, with deep personalization running on local compute.">
+<meta property="og:title" content="Deep Personalization: Unlocking Personalized Proactive Agents With Local Compute">
+<meta property="og:description" content="Personalized proactive agents that learn when you want help, running on local compute.">
+<meta property="og:type" content="article">
+<meta property="og:image" content="assets/learning-experience.png">
+<link rel="icon" type="image/png" href="assets/pet.png">
+<link rel="apple-touch-icon" href="assets/pet.png">
+<link rel="stylesheet" href="style.css?v=20261029-stable-scroll">
+</head>
+<body>
+<a class="skip-link" href="#article">Skip to article</a>
+<header class="hero" id="top">
+<div class="hero-content">
+<p class="hero-title">Deep Personalization<span>Unlocking Personalized Proactive Agents With Local Compute</span></p>
+<a class="hero-link" href="#article">Explore the research <span aria-hidden="true">↓</span></a>
+<div class="hero-demo"><iframe src="https://www.youtube-nocookie.com/embed/fe7MSjoJqZM" title="Deep Personalization — Coco demonstration" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+</div>
+</header>
+<main id="article" class="blog-layout">
+<aside class="sidebar">
+<nav class="contents" aria-label="Article contents"><a href="#motivation">Motivation</a><a href="#deep-personalization">Deep Personalization</a><a href="#on-device">On-device Observer</a><a href="#evaluation">Evaluation</a><a href="#a-week-with-coco">User study</a><a href="#conclusion">Conclusion</a></nav>
+</aside>
+<div class="blog-content">
+<div class="container introduction">
+<header class="post-header">
+<h1 class="post-title">Deep Personalization: Unlocking Personalized Proactive Agents With Local Compute</h1>
+<p class="authors">
+<span><a href="https://cs.stanford.edu/~shaoyj">Yijia Shao</a><sup>1,2*</sup></span><span><a href="https://waterpine.github.io/">Song Bian</a><sup>1</sup></span><span><a href="https://hanlab.mit.edu/team/junxian-guo">Junxian Guo</a><sup>1,3*</sup></span><span><a href="https://www.jindongjiang.me/">Jindong Jiang</a><sup>1</sup></span><span><a href="https://dong-zhen.com/">Zhen Dong</a><sup>1</sup></span><span><a href="https://ralphmao.github.io/">Huizi Mao</a><sup>4†</sup></span><span><a href="https://cs.stanford.edu/~diyiy">Diyi Yang</a><sup>2</sup></span><span><a href="https://hanlab.mit.edu/songhan">Song Han</a><sup>1,3</sup></span>
+</p>
+<p class="affiliations"><span><sup>1</sup>NVIDIA</span><span><sup>2</sup>Stanford University</span><span><sup>3</sup>Massachusetts Institute of Technology</span><span><sup>4</sup>OpenAI</span></p>
+<p class="author-notes"><span><sup>*</sup>Work done during internship at NVIDIA.</span><span><sup>†</sup>Work done at NVIDIA.</span></p>
+</header>
+<aside class="summary"><p><strong>TL;DR:</strong> The challenge of proactive agents is not what tasks they can perform, but to learn when a user wants help. Our <strong>deep personalization</strong> approach has an agent <strong>observe work context, learn from implicit feedback, and adapt over time</strong>, all <strong>running locally</strong> on a single DGX Spark or RTX 5090. Across three model families, deep personalization improves proactive support timing F1 by 2.4–3.0× over the unadapted baseline.</p></aside>
+<p class="resource-links">
+<a href="https://github.com/NVlabs/deep-personalization">Code ↗</a>
+<a href="https://github.com/collaborative-agents/coco">Agent Integration ↗</a>
+<a href="https://huggingface.co/datasets/collaborative-agents/OSWorld-Persona">Dataset ↗</a>
+<a href="https://youtu.be/fe7MSjoJqZM">Demo ↗</a>
+</p>
+<p class="related">Related project: <a href="https://collaborative-agents.github.io/">Collaboration Layer for Democratizing Artificial Intelligence ↗</a></p>
+
+</div>
+<article aria-label="Deep Personalization: Unlocking Personalized Proactive Agents With Local Compute">
+<section id="motivation"><div class="container"><h2>Motivation: A missing piece in proactive agent</h2>
+<p>Personal agents are moving from tools you open to co-workers that live alongside you. But as these agents become more personal and proactive, a harder question comes up: <strong>not just what they can do, but when you actually want them to do it.</strong></p>
+<p>Timely proactive support matters beyond convenience. Many people don&#x27;t yet recognize when AI could help them. An agent that observes context and offers help at the right moment can bring AI assistance to people who would never think to ask, even though intelligence is now at their fingertips. But getting the timing right is hard. An intervention that helps one user may be redundant or disruptive for another, and even the same user may want different levels of help across tasks and situations.</p>
+</div></section>
+<section id="deep-personalization"><div class="container"><h2>From Static User Profiles to Deep Personalization</h2>
+<p>Static profiles and settings menus can’t capture preferences like these, because the preferences depend on the situation. Instead, we propose <strong>deep personalization</strong>: a closed-loop process in which an agent continuously observes user activities, selectively retains user context, makes personalized intervention decisions, and adapts itself from implicit user feedback. The agent thus builds its understanding of the user from everyday interaction—what they are working on, how they work, what assistance they value, and when they prefer to be left alone. It keeps revising the understanding as it watches how its interventions land.</p>
+<p>We build this into <a href="https://github.com/collaborative-agents/coco">Coco</a>, an open-source proactive agent system (Figure 1). With deep personalization, Coco’s core now does three things:</p>
+<ol class="pain-list">
+<li><strong>Observe continuously.</strong> It processes desktop activity and keeps a compact long-term memory of the user’s ongoing work. This hidden state is updated with each observation and conditions every decision.</li>
+<li><strong>Decide when to help.</strong> It predicts whether proactive assistance would be valuable right now.</li>
+<li><strong>Adapt from implicit feedback.</strong> It treats the user’s acceptances, rejections, explicit requests, and repetitive-work patterns as supervision signals. It refines itself through evolutionary prompt optimization and LoRA fine-tuning.</li>
+</ol>
+</div><div class="container-wide"><figure><div class="interactive-overview" data-interactive-overview>
+<div class="overview-artwork">
+<img src="assets/overview.svg" alt="Coco’s architecture: User Context feeds the Observer Agent, which triggers an Execution Agent. A General User Model supplies memory, and interaction feedback updates the Observer." width="1877" height="788" loading="lazy" decoding="async">
+<div class="overview-hotspots" hidden>
+<button type="button" class="overview-hotspot" data-title="User Context" data-label="What you&#x27;re working on" data-detail="Coco sees your desktop activity, such as apps, browser tabs, files, emails and messages. This is the raw material for understanding what you&#x27;re doing right now." data-part="context" style="left:0.852%;top:3.173%;width:22.696%;height:85.660%;" aria-label="User Context: What you&#x27;re working on" aria-controls="overview-detail" aria-expanded="false"></button>
+<button type="button" class="overview-hotspot" data-title="Observer Agent" data-label="Decides when to help" data-detail="Running on your device, the Observer reads your screen and keeps a compact memory of your ongoing work. It then infers your likely goal and decides whether help would be welcome right now." data-part="observer" style="left:29.355%;top:3.173%;width:33.884%;height:67.513%;" aria-label="Observer Agent: Decides when to help" aria-controls="overview-detail" aria-expanded="false"></button>
+<button type="button" class="overview-hotspot" data-title="Execution Agent" data-label="Does the helping" data-detail="When the Observer triggers it, a separate agent pulls the relevant context and delivers the support, like a draft or an explanation. Because it&#x27;s separate, it can be an existing agent such as Claude Code or Codex." data-part="execution" style="left:70.059%;top:3.173%;width:28.343%;height:62.056%;" aria-label="Execution Agent: Does the helping" aria-controls="overview-detail" aria-expanded="false"></button>
+<button type="button" class="overview-hotspot" data-title="Learning from Interaction" data-label="Gets better with every response" data-detail="Coco learns from how you respond to suggestions, updating the Observer through prompt evolution and LoRA fine-tuning. The Observer also looks back for missed opportunities, using later signs like repeated actions, getting stuck, or explicitly invoking AI as feedback." data-part="learning" style="left:70.591%;top:70.685%;width:21.843%;height:18.401%;" aria-label="Learning from Interaction: Gets better with every response" aria-controls="overview-detail" aria-expanded="false"></button>
+<button type="button" class="overview-hotspot" data-title="GUM" data-label="Compresses long-horizon observation with user model" data-detail="A General User Model stores what Coco has learned about you as short statements, like your current projects and when you like help. The Observer writes to it, and the Execution Agent reads from it to tailor its support." data-part="memory" style="left:55.408%;top:71.701%;width:7.725%;height:15.863%;" aria-label="GUM: Compresses long-horizon observation with user model" aria-controls="overview-detail" aria-expanded="false"></button>
+</div>
+<div class="overview-overlay" id="overview-detail" role="region" aria-label="Component explanation" hidden><button type="button" class="overview-close" aria-label="Close explanation">×</button><strong class="overview-detail-title"></strong><p class="overview-detail-label"></p><p class="overview-detail-copy"></p><template id="overview-memory-copy">A General User Model (<a href="https://arxiv.org/abs/2505.10831" target="_blank" rel="noopener">Shaikh et al. 2025</a>) stores what Coco has learned about you as short statements, like your current projects and when you like help. The Observer writes to it, and the Execution Agent reads from it to tailor its support. <a href="https://github.com/generalusermodels/gum" target="_blank" rel="noopener">GUM on GitHub ↗</a></template></div>
+</div></div><figcaption>Figure 1: Deep personalization in Coco. An Observer Agent continuously observes the user’s context, builds a long-term model of the user, and adapts itself from implicit feedback. This closed loop lets a proactive assistant learn when each user wants help.</figcaption></figure></div><div class="container">
+<p>The Observer only decides when to help. The agent that carries out the help is separate. Because of this split, deep personalization can complement existing agent harnesses such as <a href="https://github.com/anthropics/claude-code">Claude Code</a>, <a href="https://github.com/openai/codex">Codex</a> or <a href="https://github.com/earendil-works/pi">Pi</a> or other vertical agents.</p>
+</div></section>
+<section id="on-device"><div class="container"><h2>Running a continuous observer on device</h2>
+<p>Personalized AI has a built-in tension. The more context an agent sees and retains, the better it personalizes, but the more sensitive information it exposes. <strong>Here we ask, can we get the best of both worlds by achieving deep personalization on the user device?</strong></p>
+<p>Serving the Observer on-device is a different workload from data-center LLM serving. It must process high-frequency screen captures in real time while also running personalization updates. We address this with two techniques:</p>
+<ol class="pain-list">
+<li><strong>Frame deduplication.</strong> Consecutive screenshots are often nearly identical, but even small pixel differences still produce different visual tokens. We align actions with frames and retain an intermediate screenshot only when its RGB MSE from the last retained frame exceeds a threshold. Actions from discarded frames carry forward, preserving interaction context. On a workload replayed on DGX Spark, this raises the KV cache hit rate from 26.7% to 45.2%, which matters under tight device memory.</li>
+<li><strong>Priority scheduling.</strong> We configure priority for different workloads on a single model: Observation and user-facing inference run in the foreground; each step in the personalization workload runs after one minute of inactivity, and full personalization updates wait for a longer idle period. This keeps learning from delaying observation and also improves cache locality.</li>
+</ol>
+</div><div class="container-wide"><figure class="deployment-figure" id="deployment-chart">
+<div class="deployment-box">
+<div class="deployment-legend">
+<span class="legend-baseline"><span class="swatch baseline"></span>Without change-aware frame selection</span>
+<div class="frame-explainer">
+<button type="button" class="frame-trigger" aria-expanded="false" aria-controls="frame-selection-detail"><span class="swatch selected"></span>With change-aware frame selection <span aria-hidden="true">ⓘ</span></button>
+<div class="frame-popover" id="frame-selection-detail" hidden><button type="button" class="frame-close" aria-label="Close frame-selection illustration">×</button><h3>Change-aware frame selection</h3><p>Keep a screenshot when its RGB mean squared error (MSE) from the last retained frame exceeds a threshold. Carry actions from skipped frames forward to preserve context.</p><div class="frame-sequence">
+<div class="frame-example"><img src="assets/frame-selection/frame-1.png" alt="Desktop observation 1: retained" loading="lazy" width="1920" height="1080"><span class="keep">✓ Keep</span></div>
+<div class="frame-example"><img src="assets/frame-selection/frame-2.png" alt="Desktop observation 2: skipped as a near-duplicate" loading="lazy" width="1920" height="1080"><span class="skip">× Skip</span></div>
+<div class="frame-example"><img src="assets/frame-selection/frame-3.png" alt="Desktop observation 3: skipped as a near-duplicate" loading="lazy" width="1920" height="1080"><span class="skip">× Skip</span></div>
+<div class="frame-example"><img src="assets/frame-selection/frame-4.png" alt="Desktop observation 4: retained" loading="lazy" width="1920" height="1080"><span class="keep">✓ Keep</span></div>
+<div class="frame-example"><img src="assets/frame-selection/frame-5.png" alt="Desktop observation 5: skipped as a near-duplicate" loading="lazy" width="1920" height="1080"><span class="skip">× Skip</span></div>
+<div class="frame-example"><img src="assets/frame-selection/frame-6.png" alt="Desktop observation 6: retained" loading="lazy" width="1920" height="1080"><span class="keep">✓ Keep</span></div>
+</div><div class="frame-actions"><span>click, Alt+F4, click →</span><span>click, click file →</span></div><img class="mse-plot" src="assets/frame-selection/mse.svg" alt="MSE over time compared with a threshold τ, illustrating when a frame is retained." width="395" height="49"><p class="frame-note">Actions from skipped frames carry forward to the next retained frame.</p></div></div></div>
+<div class="deployment-charts">
+<div class="metric-chart" role="img" aria-label="Latency (s). 9B: without selection 1.75, with selection 1.27; 35B-A3B-FP8: without selection 4.45, with selection 3.63">
+<h3>Latency <span>(s)</span></h3>
+<p class="metric-direction">Lower is better</p>
+<div class="metric-plot">
+<div class="metric-grid" aria-hidden="true">
+<span style="bottom:0%"><span>0</span></span>
+<span style="bottom:20%"><span>1</span></span>
+<span style="bottom:40%"><span>2</span></span>
+<span style="bottom:60%"><span>3</span></span>
+<span style="bottom:80%"><span>4</span></span>
+<span style="bottom:100%"><span>5</span></span>
+</div><div class="metric-groups" aria-hidden="true">
+<div class="bar-pair">
+<div class="metric-bar baseline" style="height:35.000%"><span>1.75</span></div>
+<div class="metric-bar selected" style="height:25.400%"><span>1.27</span></div>
+</div>
+<div class="bar-pair">
+<div class="metric-bar baseline" style="height:89.000%"><span>4.45</span></div>
+<div class="metric-bar selected" style="height:72.600%"><span>3.63</span></div>
+</div>
+</div></div>
+<div class="metric-models" aria-hidden="true">
+<div><strong>9B</strong><span>RTX 5090</span></div>
+<div><strong>35B-A3B-FP8</strong><span>DGX Spark</span></div>
+</div></div>
+<div class="metric-chart" role="img" aria-label="Time to first token (s). 9B: without selection 0.96, with selection 0.55; 35B-A3B-FP8: without selection 1.75, with selection 0.94">
+<h3>Time to first token <span>(s)</span></h3>
+<p class="metric-direction">Lower is better</p>
+<div class="metric-plot">
+<div class="metric-grid" aria-hidden="true">
+<span style="bottom:0%"><span>0</span></span>
+<span style="bottom:20%"><span>0.4</span></span>
+<span style="bottom:40%"><span>0.8</span></span>
+<span style="bottom:60%"><span>1.2</span></span>
+<span style="bottom:80%"><span>1.6</span></span>
+<span style="bottom:100%"><span>2</span></span>
+</div><div class="metric-groups" aria-hidden="true">
+<div class="bar-pair">
+<div class="metric-bar baseline" style="height:48.000%"><span>0.96</span></div>
+<div class="metric-bar selected" style="height:27.500%"><span>0.55</span></div>
+</div>
+<div class="bar-pair">
+<div class="metric-bar baseline" style="height:87.500%"><span>1.75</span></div>
+<div class="metric-bar selected" style="height:47.000%"><span>0.94</span></div>
+</div>
+</div></div>
+<div class="metric-models" aria-hidden="true">
+<div><strong>9B</strong><span>RTX 5090</span></div>
+<div><strong>35B-A3B-FP8</strong><span>DGX Spark</span></div>
+</div></div>
+<div class="metric-chart" role="img" aria-label="KV cache hit rate (%). 9B: without selection 27.1, with selection 45.2; 35B-A3B-FP8: without selection 26.7, with selection 45.2">
+<h3>KV cache hit rate <span>(%)</span></h3>
+<p class="metric-direction">Higher is better</p>
+<div class="metric-plot">
+<div class="metric-grid" aria-hidden="true">
+<span style="bottom:0%"><span>0</span></span>
+<span style="bottom:20%"><span>10</span></span>
+<span style="bottom:40%"><span>20</span></span>
+<span style="bottom:60%"><span>30</span></span>
+<span style="bottom:80%"><span>40</span></span>
+<span style="bottom:100%"><span>50</span></span>
+</div><div class="metric-groups" aria-hidden="true">
+<div class="bar-pair">
+<div class="metric-bar baseline" style="height:54.200%"><span>27.1</span></div>
+<div class="metric-bar selected" style="height:90.400%"><span>45.2</span></div>
+</div>
+<div class="bar-pair">
+<div class="metric-bar baseline" style="height:53.400%"><span>26.7</span></div>
+<div class="metric-bar selected" style="height:90.400%"><span>45.2</span></div>
+</div>
+</div></div>
+<div class="metric-models" aria-hidden="true">
+<div><strong>9B</strong><span>RTX 5090</span></div>
+<div><strong>35B-A3B-FP8</strong><span>DGX Spark</span></div>
+</div></div>
+<div class="metric-chart" role="img" aria-label="MM processor cache hit rate (%). 9B: without selection 4.54, with selection 4.38; 35B-A3B-FP8: without selection 4.54, with selection 4.38">
+<h3>MM cache hit rate <span>(%)</span></h3>
+<p class="metric-direction">Higher is better</p>
+<div class="metric-plot">
+<div class="metric-grid" aria-hidden="true">
+<span style="bottom:0%"><span>0</span></span>
+<span style="bottom:20%"><span>1</span></span>
+<span style="bottom:40%"><span>2</span></span>
+<span style="bottom:60%"><span>3</span></span>
+<span style="bottom:80%"><span>4</span></span>
+<span style="bottom:100%"><span>5</span></span>
+</div><div class="metric-groups" aria-hidden="true">
+<div class="bar-pair">
+<div class="metric-bar baseline" style="height:90.800%"><span>4.54</span></div>
+<div class="metric-bar selected" style="height:87.600%"><span>4.38</span></div>
+</div>
+<div class="bar-pair">
+<div class="metric-bar baseline" style="height:90.800%"><span>4.54</span></div>
+<div class="metric-bar selected" style="height:87.600%"><span>4.38</span></div>
+</div>
+</div></div>
+<div class="metric-models" aria-hidden="true">
+<div><strong>9B</strong><span>RTX 5090</span></div>
+<div><strong>35B-A3B-FP8</strong><span>DGX Spark</span></div>
+</div></div>
+</div></div><figcaption>Figure 2: Profiling efficient on-device deployment of the Observer Agent on a replayed computer-use workload. Hover, focus, or tap “With change-aware frame selection” to explore how frames are selected.</figcaption></figure></div><div class="container">
+<p>Besides the two techniques, we use <a href="https://github.com/mit-han-lab/cti-engine">cti-engine</a>, a single-GPU engine that supports both inference and fine-tuning on the same model instance and is friendly for workload-specific optimization, and use speculative decoding through block diffusion prediction (<a href="https://arxiv.org/abs/2602.06036">Chen et al., 2026</a>) to further speed up inference. When we deploy Qwen3.5-35B-A3B-FP8 on DGX Spark, we observe mean time-to-first-token as 2.831s and mean latency as 7.518s, reaching the requirement of Coco&#x27;s interaction cycle.</p>
+</div></section>
+<section id="evaluation"><div class="container"><h2>Evaluating proactive support at scale</h2>
+<p>Proactive assistance is difficult to study with text-only datasets: the agent’s decision depends on what is happening on the screen and how the person prefers to work. To make evaluation more representative, we developed a pipeline that turns computer-use recordings into personalized support examples.</p>
+<p>The pipeline extracts key frames, pairs them with simulated user personas, and uses a vision-language model to label whether assistance would be welcome. We split sessions chronologically for each persona, so evaluation measures how well a system can adapt to a person’s preferences over time.</p>
+<p>We applied the pipeline to OSWorld 2.0 (<a href="https://arxiv.org/abs/2606.29537">Yuan et al., 2026</a>) and created <strong>OSWorld-Persona</strong>, a dataset with 6,558 key frames and 3,259 proactive-support annotations across 108 sessions. Four personas capture different preferences, from welcoming frequent help to preferring assistance only when stuck. We used self-consistency checks and human review to improve label quality.</p>
+</div><div class="container-wide"><figure class="pipeline-figure"><div class="pipeline-preview">
+<button type="button" class="pipeline-trigger" aria-label="Explore an example OSWorld-Persona data point" aria-expanded="false" aria-controls="pipeline-example"><img src="assets/osworld-persona-data-pipeline.png" alt="OSWorld-Persona data pipeline for creating personalized proactive-support examples from computer-use recordings." loading="lazy" decoding="async" width="2992" height="748"></button>
+<div class="pipeline-example" id="pipeline-example" role="region" aria-label="Example OSWorld-Persona data point" hidden>
+<div class="pipeline-example-header"><strong>Example data point</strong><button type="button" class="pipeline-close" aria-label="Close example data point">×</button></div>
+<a href="assets/example_data_point.png" target="_blank" rel="noopener" aria-label="Open example data point at full size"><img src="assets/example_data_point.png" alt="Automation-first persona example: assistance is useful when assigning reviewers across apps, but not when examining a single paper. Includes observations, user intent, rationale, and supporting context." loading="lazy" decoding="async" width="2162" height="1442"></a>
+</div></div><figcaption>Figure 3: Synthetic data pipeline for personalized proactive agent studies. We use this pipeline to construct OSWorld-Persona from OSWorld v2 trajectories.</figcaption></figure></div><div class="container">
+<p>We evaluate whether the Observer Agent identifies moments when help is needed while limiting unwanted interruptions. The table shows macro F1 for the unadapted model and Coco under deep personalization with evolutionary prompt optimization (Coco-PE) and LoRA fine-tuning (Coco-LoRA).</p>
+<figure class="results-figure"><div class="table-wrap" role="region" aria-label="Observer model benchmark results" tabindex="0"><table><caption class="visually-hidden">OSWorld-Persona benchmark results, macro F1</caption><thead>
+<tr><th scope="col">Observer Agent model</th><th scope="col">Vanilla F1</th><th scope="col">Coco-PE F1</th><th scope="col">Coco-LoRA F1</th></tr>
+</thead><tbody>
+<tr><th scope="row">Qwen-3.5-9B</th><td>0.1861</td><td>0.4832 <strong class="result-gain">(2.6×)</strong></td><td>0.4551 <strong class="result-gain">(2.4×)</strong></td></tr>
+<tr><th scope="row">Qwen-3.5-35B-A3B</th><td>0.1827</td><td>0.4334 <strong class="result-gain">(2.4×)</strong></td><td>0.3135 <strong class="result-gain">(1.7×)</strong></td></tr>
+<tr><th scope="row">Nemotron-3-Nano-Omni</th><td>0.1175</td><td>0.3211 <strong class="result-gain">(2.7×)</strong></td><td>0.3485 <strong class="result-gain">(3.0×)</strong></td></tr>
+</tbody></table></div><figcaption>Table 1: Macro F1 for proactive support timing on OSWorld-Persona.</figcaption></figure>
+</div></section>
+<section id="a-week-with-coco"><div class="container"><h2>A week with Coco</h2>
+<p>We further deployed Coco as a desktop assistant with the Observer running Qwen3.5-9B on a single RTX 5090 and let ten participants use it during their normal computer work for one week. </p>
+<p>We treated a thumbs-up as a helpful suggestion and a thumbs-down or dismissal as an unwanted one. When Coco stayed silent but a participant directly asked it for help, we counted that as a proxy for a missed opportunity. This measure may underestimate unmet needs, since participants might want help without explicitly asking.</p>
+<p>Across the study, the macro-averaged F1 proxy rose from 0.199 to 0.515. The results also show a cold start: on Day 1, six participants had an F1 proxy of zero because Coco had not yet made a helpful proactive suggestion. After adaptation, each of them received suggestions they rated as helpful.</p>
+<h3>What does Deep Personalization learn?</h3>
+<p>We examined how Coco’s learned preferences changed over time in one author’s deployment. Early on, it learned broad cues such as a visible “TODO” could signal an opportunity to help, while technical output often called for silence. With more feedback, the distinction became more precise. On Day 5, Coco learned workflow-aware boundaries, such as to offer help while the user was filling in a TODO, but to stay quiet when they were reviewing the full document.</p>
+<p>By the end of the week, it had learned a more specific boundary and learned to infer user intent: the user welcomed help filling a generative gap, but preferred to integrate verified content independently. The preference was not simply “help with documents.” It depended on the kind of work underway.</p>
+</div><div class="container-wide"><figure><a href="assets/coco-decision-tree.gif" aria-label="View full-size figure"><img src="assets/coco-decision-tree.gif" alt="Animation of Coco’s learned decision boundaries evolving over a week." loading="lazy" decoding="async" width="2160" height="988"></a><figcaption>Figure 4: Coco’s learned preferences evolve from broad cues to context-specific decisions about when to offer help.</figcaption></figure></div><div class="container">
+<h3>Discovering how we can collaborate with agents</h3>
+<p>When we interact with non-technical users, we realize deep personalization may do more than improving proactive support timing. It can help people discover where AI fits into their work.</p>
+<p>One participant initially saw Coco as similar to the AI tools she already used. On Day 3, Coco proactively offered to explain unfamiliar taxonomy while she was reading technical material. She continued using that kind of support during the study. With her permission, we reviewed the memory on her device: Coco had learned that she valued explanations for jargon in technical blogs, but not while reading forum posts or scrolling through research papers; and further asks the user questions as this type of behavior is marked as thumb-up by the user.</p>
+</div><div class="container-wide"><figure><a href="assets/learning-experience.png" aria-label="View full-size figure"><img src="assets/learning-experience.png" alt="Coco offers comprehension questions about EEG methodology alongside a research paper." loading="lazy" decoding="async" width="1796" height="1022"></a><figcaption>Figure 5: Learning how to support learning. Coco offers comprehension questions alongside technical reading, adapting its support as it learns which explanations and questions the user finds helpful.</figcaption></figure></div><div class="container">
+<p><strong>This points to a broader possibility.</strong> People may not begin with a clear picture of how an agent could help them. A system that observes work and learns from feedback can surface useful forms of collaboration and then adapt as a person decides what works for them.</p>
+</div></section>
+<section id="conclusion"><div class="container"><h2>Conclusion</h2>
+<p>We present <strong>deep personalization</strong>: agents that evolve with their users through continuous context observation and implicit feedback. On our OSWorld-Persona testbed, this improves proactive support timing by 2.4–3× F1 gain across three model families. In a week-long study with ten participants, the F1 proxy rose from 0.199 to 0.515. All of this runs on local AI compute platform, so the context that makes an agent personal stays on the user’s device.</p>
+<p>Looking ahead, we see deep personalization as a foundation for everyday personal assistants. An assistant built into an operating system or wearable could maintain context across applications, learn when a person welcomes help, and delegate execution to specialized agents. <strong>Our separation between observation and execution offers one possible architecture:</strong> a local Observer learns the user’s preferences, then brings in the appropriate agent when assistance would be useful.</p>
+<p>Ultimately, we believe new local compute platforms can let AI do more than answer queries or execute tasks. The goal is an assistant that grows with its user, helps them discover where AI fits into their work, and leaves them in control of when and how it helps.</p>
+</div></section>
+</article>
+</div>
+</main>
+<footer><h2 class="ack-title">Acknowledgements</h2><p>We are grateful for discussions and help from Shang Yang, Ligeng Zhu, Han Cai, Zhiding Yu, Yanzhe Zhang, Zora Wang, Haowen Wang, Shunta Kimura, Fenghai Li, Minyang Xie, Weixian Xu, Xinrui Shi, and the broader NVIDIA community.</p></footer>
+<script src="navigation.js?v=20261029-repeat-scroll" defer></script>
+<script src="overview.js" defer></script>
+<script src="deployment.js" defer></script>
+<script src="pipeline.js" defer></script>
+</body>
+</html>
