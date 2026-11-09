@@ -10,7 +10,7 @@ This repository provides benchmarks, personalization methods, and backend-indepe
 uv sync
 ```
 
-Python 3.9+ is supported. Tinker inference and training require Python 3.11+.
+Python 3.11+ is required, including for Tinker inference and training.
 
 ## Benchmarks
 
