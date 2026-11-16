@@ -60,9 +60,7 @@ Method code defines how personalization is learned or applied; a backend runs th
 - `TextGenerator` handles text-only induction, reflection, and prompt evolution.
 - `LoRATrainingBackend` trains revised examples and returns a `TrainedAdapter`.
 
-The repository provides [OpenAI-compatible and native Tinker inference
-backends](inference_backends) and [LLaMA-Factory and Tinker training
-backends](training_backends).
+The repository provides [OpenAI-compatible and native Tinker inference backends](inference_backends) and [LLaMA-Factory and Tinker training backends](training_backends).
 
 ## How to Benchmark a Method
 
@@ -78,10 +76,22 @@ Each benchmark runs a three-stage pipeline:
 
 See the [OSWorld-Persona guide](benchmarks/osworld_persona) for complete commands for every supported method and external scoring.
 
+## External Integration
+Deep Personalization is integrated into [Coco](https://github.com/collaborative-agents/coco), a proactive agent that grows with you.
+
+
 ## License
 
 This project is licensed under the [Apache License 2.0](LICENSE).
 
 ## Citation
 
-Citation information will be added with the associated paper release.
+Please cite our paper if you use this code/data or part of it in your work:
+```bibtex
+@article{shao2026deep,
+  title={Deep Personalization: Continuous Context Observation for Local Proactive Agents},
+  author={Shao, Yijia and Bian, Song and Guo, Junxian and Jiang, Jindong and Dong, Zhen and Mao, Huizi and Yang, Diyi and Han, Song},
+  journal={arXiv preprint arXiv:2611.13457},
+  year={2026}
+}
+```

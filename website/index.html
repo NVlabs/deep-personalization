@@ -11,7 +11,7 @@
 <meta property="og:image" content="assets/learning-experience.png">
 <link rel="icon" type="image/png" href="assets/pet.png">
 <link rel="apple-touch-icon" href="assets/pet.png">
-<link rel="stylesheet" href="style.css?v=20261029-stable-scroll">
+<link rel="stylesheet" href="style.css?v=20261115-mobile">
 </head>
 <body>
 <a class="skip-link" href="#article">Skip to article</a>
@@ -38,6 +38,7 @@
 </header>
 <aside class="summary"><p><strong>TL;DR:</strong> The challenge of proactive agents is not what tasks they can perform, but to learn when a user wants help. Our <strong>deep personalization</strong> approach has an agent <strong>observe work context, learn from implicit feedback, and adapt over time</strong>, all <strong>running locally</strong> on a single DGX Spark or RTX 5090. Across three model families, deep personalization improves proactive support timing F1 by 2.4–3.0× over the unadapted baseline.</p></aside>
 <p class="resource-links">
+<a href="https://arxiv.org/abs/2611.13457">Paper ↗</a>
 <a href="https://github.com/NVlabs/deep-personalization">Code ↗</a>
 <a href="https://github.com/collaborative-agents/coco">Agent Integration ↗</a>
 <a href="https://huggingface.co/datasets/collaborative-agents/OSWorld-Persona">Dataset ↗</a>
@@ -235,6 +236,14 @@
 <p>We present <strong>deep personalization</strong>: agents that evolve with their users through continuous context observation and implicit feedback. On our OSWorld-Persona testbed, this improves proactive support timing by 2.4–3× F1 gain across three model families. In a week-long study with ten participants, the F1 proxy rose from 0.199 to 0.515. All of this runs on local AI compute platform, so the context that makes an agent personal stays on the user’s device.</p>
 <p>Looking ahead, we see deep personalization as a foundation for everyday personal assistants. An assistant built into an operating system or wearable could maintain context across applications, learn when a person welcomes help, and delegate execution to specialized agents. <strong>Our separation between observation and execution offers one possible architecture:</strong> a local Observer learns the user’s preferences, then brings in the appropriate agent when assistance would be useful.</p>
 <p>Ultimately, we believe new local compute platforms can let AI do more than answer queries or execute tasks. The goal is an assistant that grows with its user, helps them discover where AI fits into their work, and leaves them in control of when and how it helps.</p>
+</div></section>
+<section id="citation"><div class="container"><h2>BibTeX</h2>
+<pre class="citation"><code>@article{shao2026deep,
+  title={Deep Personalization: Continuous Context Observation for Local Proactive Agents},
+  author={Shao, Yijia and Bian, Song and Guo, Junxian and Jiang, Jindong and Dong, Zhen and Mao, Huizi and Yang, Diyi and Han, Song},
+  journal={arXiv preprint arXiv:2611.13457},
+  year={2026}
+}</code></pre>
 </div></section>
 </article>
 </div>
