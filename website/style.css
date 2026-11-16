@@ -44,8 +44,8 @@ strong { color: var(--text-strong); }
 }
 
 
-/* The navigation occupies its own column, clear of text and wide figures. */
-.blog-layout { display: grid; grid-template-columns: 180px minmax(0, 1000px); gap: 32px; max-width: 1292px; padding: 64px 24px 0; margin: auto; align-items: start; }
+/* Equal side columns keep the article centered, with navigation in the left rail. */
+.blog-layout { display: grid; grid-template-columns: 180px minmax(0, 1000px) 180px; gap: 32px; max-width: 1472px; padding: 64px 24px 0; margin: auto; align-items: start; }
 .blog-content { min-width: 0; }
 .sidebar { position: sticky; top: 40px; max-height: calc(100vh - 80px); overflow-y: auto; }
 .contents { display: flex; flex-direction: column; font-size: 14px; line-height: 1.45; }
@@ -96,7 +96,7 @@ footer p { max-width: 780px; margin: 0 auto; }
 footer .ack-title { font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; font-size: 12px; color: var(--accent); margin-bottom: 8px; }
 
 @media (max-width: 1000px) {
- .blog-layout { grid-template-columns: 150px minmax(0, 1fr); gap: 16px; padding-inline: 16px; }
+ .blog-layout { grid-template-columns: 120px minmax(0, 1fr) 120px; gap: 16px; padding-inline: 16px; }
  .container, .container-wide { padding-inline: 16px; }
 }
 @media (max-width: 760px) {
