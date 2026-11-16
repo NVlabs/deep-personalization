@@ -1,5 +1,25 @@
 // Keep the contents aligned with the section at the top of the reading area.
 (() => {
+  const contentsToggle = document.querySelector('.contents-toggle');
+  const sidebar = document.querySelector('.sidebar');
+  function closeContents(returnFocus = false) {
+    sidebar?.classList.remove('is-open');
+    contentsToggle?.setAttribute('aria-expanded', 'false');
+    if (returnFocus) contentsToggle?.focus();
+  }
+  contentsToggle?.addEventListener('click', () => {
+    const open = contentsToggle.getAttribute('aria-expanded') !== 'true';
+    contentsToggle.setAttribute('aria-expanded', String(open));
+    sidebar?.classList.toggle('is-open', open);
+  });
+  document.addEventListener('click', event => {
+    if (!sidebar?.contains(event.target) && !contentsToggle?.contains(event.target)) closeContents();
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && contentsToggle?.getAttribute('aria-expanded') === 'true') closeContents(true);
+  });
+  sidebar?.querySelectorAll('a').forEach(link => link.addEventListener('click', () => closeContents(true)));
+  window.matchMedia('(max-width: 760px)').addEventListener('change', () => closeContents());
   const exploreLink = document.querySelector('.hero-link');
   const article = document.getElementById('article');
   exploreLink?.addEventListener('click', event => {

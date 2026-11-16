@@ -11,10 +11,14 @@
 <meta property="og:image" content="assets/learning-experience.png">
 <link rel="icon" type="image/png" href="assets/pet.png">
 <link rel="apple-touch-icon" href="assets/pet.png">
-<link rel="stylesheet" href="style.css?v=20261115-mobile">
+<link rel="stylesheet" href="style.css?v=20261115-mobile-header">
 </head>
 <body>
 <a class="skip-link" href="#article">Skip to article</a>
+<div class="mobile-toolbar">
+<div class="mobile-resources"><a class="mobile-coco" href="https://github.com/collaborative-agents/coco" aria-label="Coco on GitHub"><img src="assets/pet.png" width="32" height="32" alt="Coco"></a><a href="https://github.com/NVlabs/deep-personalization">Code ↗</a></div>
+<button class="contents-toggle" type="button" aria-expanded="false" aria-controls="article-contents">Contents <span aria-hidden="true">☰</span></button>
+</div>
 <header class="hero" id="top">
 <div class="hero-content">
 <p class="hero-title">Deep Personalization<span>Unlocking Personalized Proactive Agents With Local Compute</span></p>
@@ -24,7 +28,7 @@
 </header>
 <main id="article" class="blog-layout">
 <aside class="sidebar">
-<nav class="contents" aria-label="Article contents"><a href="#motivation">Motivation</a><a href="#deep-personalization">Deep Personalization</a><a href="#on-device">On-device Observer</a><a href="#evaluation">Evaluation</a><a href="#a-week-with-coco">User study</a><a href="#conclusion">Conclusion</a></nav>
+<nav class="contents" id="article-contents" aria-label="Article contents"><a href="#motivation">Motivation</a><a href="#deep-personalization">Deep Personalization</a><a href="#on-device">On-device Observer</a><a href="#evaluation">Evaluation</a><a href="#a-week-with-coco">User study</a><a href="#conclusion">Conclusion</a></nav>
 </aside>
 <div class="blog-content">
 <div class="container introduction">
@@ -197,7 +201,7 @@
 <div><strong>35B-A3B-FP8</strong><span>DGX Spark</span></div>
 </div></div>
 </div></div><figcaption>Figure 2: Profiling efficient on-device deployment of the Observer Agent on a replayed computer-use workload. Hover, focus, or tap “With change-aware frame selection” to explore how frames are selected.</figcaption></figure></div><div class="container">
-<p>Besides the two techniques, we use <a href="https://github.com/mit-han-lab/cti-engine">cti-engine</a>, a single-GPU engine that supports both inference and fine-tuning on the same model instance and is friendly for workload-specific optimization, and use speculative decoding through block diffusion prediction (<a href="https://arxiv.org/abs/2602.06036">Chen et al., 2026</a>) to further speed up inference. When we deploy Qwen3.5-35B-A3B-FP8 on DGX Spark, we observe mean time-to-first-token as 2.831s and mean latency as 7.518s, reaching the requirement of Coco&#x27;s interaction cycle.</p>
+<p>Besides the two techniques, we co-design <a href="https://github.com/mit-han-lab/cti-engine">CTI</a>, a single-GPU engine that supports both inference and fine-tuning on the same model instance and is friendly for workload-specific optimization, and use speculative decoding through block diffusion prediction (<a href="https://arxiv.org/abs/2602.06036">Chen et al., 2026</a>) to further speed up inference. When we deploy Qwen3.5-35B-A3B-FP8 on DGX Spark, we observe mean time-to-first-token as 2.831s and mean latency as 7.518s, reaching the requirement of Coco&#x27;s interaction cycle.</p>
 </div></section>
 <section id="evaluation"><div class="container"><h2>Evaluating proactive support at scale</h2>
 <p>Proactive assistance is difficult to study with text-only datasets: the agent’s decision depends on what is happening on the screen and how the person prefers to work. To make evaluation more representative, we developed a pipeline that turns computer-use recordings into personalized support examples.</p>
@@ -249,7 +253,7 @@
 </div>
 </main>
 <footer><h2 class="ack-title">Acknowledgements</h2><p>We are grateful for discussions and help from Shang Yang, Ligeng Zhu, Han Cai, Zhiding Yu, Yanzhe Zhang, Zora Wang, Haowen Wang, Shunta Kimura, Fenghai Li, Minyang Xie, Weixian Xu, Xinrui Shi, and the broader NVIDIA community.</p></footer>
-<script src="navigation.js?v=20261029-repeat-scroll" defer></script>
+<script src="navigation.js?v=20261115-mobile-menu" defer></script>
 <script src="overview.js" defer></script>
 <script src="deployment.js" defer></script>
 <script src="pipeline.js" defer></script>

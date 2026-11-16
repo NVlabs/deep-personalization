@@ -22,6 +22,7 @@ strong { color: var(--text-strong); }
 :focus-visible { outline: 3px solid #7c9ce5; outline-offset: 5px; }
 .skip-link { position: absolute; top: 12px; left: 12px; z-index: 10; padding: 10px 16px; background: white; border-radius: 8px; transform: translateY(-150%); }
 .skip-link:focus { transform: translateY(0); }
+.mobile-toolbar { display: none; }
 
 /* A quiet opening gives the demo the largest share of the screen. */
 .hero { background: radial-gradient(ellipse 80% 60% at 70% 20%, rgba(99, 102, 241, .35), transparent 60%), radial-gradient(ellipse 70% 55% at 25% 85%, rgba(188, 208, 252, .22), transparent 60%), linear-gradient(160deg, #16334f 0%, var(--accent) 55%, #2c5d94 100%); text-align: center; padding: 80px 28px 32px; }
@@ -99,21 +100,30 @@ footer .ack-title { font-weight: 700; text-transform: uppercase; letter-spacing:
  .container, .container-wide { padding-inline: 16px; }
 }
 @media (max-width: 760px) {
+ html { scroll-padding-top: 76px; }
  body { font-size: 16px; }
- .hero { padding: 40px 20px 32px; }
- .hero-title { font-size: clamp(28px, 7.5vw, 38px); line-height: 1.15; }
- .hero-title span { margin: 14px auto 20px; max-width: 32ch; font-size: clamp(18px, 4.6vw, 24px); line-height: 1.4; white-space: normal; }
- .hero-demo { margin-top: 22px; border-radius: 8px; }
+ .skip-link { position: fixed; z-index: 30; }
+ .mobile-toolbar { position: fixed; inset: 0 0 auto; z-index: 20; display: flex; align-items: center; justify-content: space-between; min-height: 56px; padding: env(safe-area-inset-top, 0px) 16px 0; background: rgba(255, 255, 255, .97); border-bottom: 1px solid var(--border); }
+ .mobile-resources { display: flex; align-items: center; gap: 12px; }
+ .mobile-resources a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; font-size: 14px; font-weight: 700; }
+ .mobile-coco { justify-content: center; min-width: 44px; }
+ .mobile-coco img { object-fit: contain; }
+ .contents-toggle { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; border: 0; padding: 0 8px; background: transparent; color: var(--accent); font: inherit; font-size: 14px; cursor: pointer; }
+ .hero { padding: calc(68px + env(safe-area-inset-top, 0px)) 16px 0; background: white; }
+ .hero-title, .hero-link { display: none; }
+ .hero-demo { margin: 0; border-radius: 8px; }
  /* Constrain the article even when its table has a wider intrinsic width. */
- .blog-layout { grid-template-columns: minmax(0, 1fr); padding: 24px 20px 0; gap: 28px; }
- .sidebar { position: static; min-width: 0; max-height: none; width: 100%; }
- .contents { flex-direction: row; flex-wrap: nowrap; gap: 8px; overflow-x: auto; padding: 0 0 12px; border-bottom: 1px solid var(--border); }
- .contents a { flex: 0 0 auto; display: flex; align-items: center; min-height: 44px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; white-space: nowrap; }
+ .blog-layout { grid-template-columns: minmax(0, 1fr); padding: 18px 16px 0; gap: 0; }
+ .sidebar { display: none; position: fixed; z-index: 21; top: calc(64px + env(safe-area-inset-top, 0px)); right: 12px; width: min(280px, calc(100vw - 24px)); max-height: calc(100svh - 88px - env(safe-area-inset-top, 0px)); overflow-y: auto; padding: 8px; border: 1px solid var(--border); border-radius: 12px; background: white; box-shadow: 0 8px 32px #10223626; }
+ .sidebar.is-open { display: block; }
+ .contents { flex-direction: column; gap: 2px; padding: 0; }
+ .contents a { min-height: 44px; padding: 12px; border: 0; border-radius: 6px; }
  .container, .container-wide { width: 100%; padding: 0; }
- .post-header { margin-bottom: 24px; }
- .post-title { font-size: clamp(25px, 6.5vw, 32px); line-height: 1.25; margin-bottom: 22px; }
- .authors { font-size: 14px; gap: 8px 16px; }
- .affiliations { font-size: 13px; }
+ .post-header { margin-bottom: 28px; }
+ .post-title { font-size: clamp(22px, 5.8vw, 30px); line-height: 1.2; margin-bottom: 14px; }
+ .authors { font-size: 13px; line-height: 1.6; gap: 4px 12px; margin-bottom: 12px; }
+ .affiliations { font-size: 11px; line-height: 1.6; gap: 3px 12px; margin-bottom: 8px; }
+ .author-notes { font-size: 10px; line-height: 1.5; margin-bottom: 0; }
  .summary { padding: 16px 18px; font-size: 15px; }
  .resource-links { gap: 8px; margin: 16px 0 12px; font-size: 14px; }
  .resource-links a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 12px; border: 1px solid var(--accent-border); border-radius: 8px; text-decoration: none; }
@@ -198,6 +208,8 @@ figure .overview-detail-copy a { display: inline; }
 }
 @media (max-width: 480px) {
  .deployment-box { padding: 20px 12px; }
+ .metric-groups { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+ .bar-pair { min-width: 0; }
  .deployment-charts { gap: 28px 14px; }
  .metric-chart h3 { min-height: 42px; font-size: 12px; }
  .metric-plot { height: 150px; margin-left: 20px; }
